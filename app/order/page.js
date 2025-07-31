@@ -634,10 +634,10 @@ const CausalRankingPage = () => {
                         lineHeight: 1.4
                       }}
                     >
-                      "{highlightKeyWord(card.text, card.keyWord)}"
+                      &quot;{highlightKeyWord(card.text, card.keyWord)}&quot;
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'primary.main' }}>
-                      Key word: "{card.keyWord}"
+                      Key word: &quot;{card.keyWord}&quot;
                     </Typography>
                   </Box>
                 </Paper>
