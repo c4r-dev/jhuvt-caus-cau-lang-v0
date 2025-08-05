@@ -475,41 +475,40 @@ const CausalRankingPage = () => {
   const progress = ((currentRound + 1) / roundsData.length) * 100;
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', p: 3 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', p: 1 }}>
       <Container maxWidth="lg">
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 1 }}>
+        <Box sx={{ mb: 1 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 0.25, fontSize: '1.4rem' }}>
             Ranking Causal-ish Paper Titles
           </Typography>
-          <Typography variant="body1" sx={{ color: 'grey.600', mb: 2, lineHeight: 1.6 }}>
-            Drag and drop the different word options to rank them by strength of causal implication. The same sentence 
-            template is used with different causal words - rank from strongest to weakest causal implication.
+          <Typography variant="body2" sx={{ color: 'grey.600', mb: 1, lineHeight: 1.3, fontSize: '0.75rem' }}>
+            Drag and drop the different word options to rank them by strength of causal implication.
           </Typography>
           
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body2" sx={{ color: 'grey.500' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+            <Typography variant="body2" sx={{ color: 'grey.500', fontSize: '0.7rem' }}>
               Round {currentRound + 1} of {roundsData.length}
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <People sx={{ fontSize: 16, color: 'grey.500' }} />
-              <Typography variant="body2" sx={{ color: 'grey.500' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+              <People sx={{ fontSize: 12, color: 'grey.500' }} />
+              <Typography variant="body2" sx={{ color: 'grey.500', fontSize: '0.7rem' }}>
                 3 participants so far
               </Typography>
             </Box>
           </Box>
 
           {/* Progress Bar */}
-          <Box sx={{ width: '100%', mb: 2 }}>
+          <Box sx={{ width: '100%', mb: 1 }}>
             <LinearProgress 
               variant="determinate" 
               value={progress} 
               sx={{ 
-                height: 8, 
-                borderRadius: 4,
+                height: 3, 
+                borderRadius: 1.5,
                 bgcolor: 'grey.200',
                 '& .MuiLinearProgress-bar': {
-                  borderRadius: 4
+                  borderRadius: 1.5
                 }
               }} 
             />
@@ -517,17 +516,21 @@ const CausalRankingPage = () => {
         </Box>
 
         {/* Topic Section */}
-        <Paper elevation={1} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 600, color: 'grey.900' }}>
+        <Paper elevation={1} sx={{ p: 1.5, mb: 1.5, borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 600, color: 'grey.900', fontSize: '1rem' }}>
               Topic: {roundsData[currentRound]?.topic}
             </Typography>
             <Button
               onClick={handleShuffleKeywords}
-              startIcon={<Shuffle />}
+              startIcon={<Shuffle sx={{ fontSize: 14 }} />}
               size="small"
               sx={{ 
                 color: 'primary.main',
+                fontSize: '0.7rem',
+                px: 0.75,
+                py: 0.25,
+                minHeight: 24,
                 '&:hover': {
                   bgcolor: 'primary.50'
                 }
@@ -536,23 +539,19 @@ const CausalRankingPage = () => {
               New Keywords
             </Button>
           </Box>
-          
-          <Typography variant="body1" sx={{ color: 'grey.600', mb: 3 }}>
-            Drag and drop the different word options to rank them by strength of causal implication.
-          </Typography>
 
           {/* Current Keywords Display */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={{ color: 'grey.500', mb: 1 }}>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="body2" sx={{ color: 'grey.500', mb: 0.25, fontSize: '0.7rem' }}>
               Current keywords for this round:
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 0.25, flexWrap: 'wrap' }}>
               {(roundKeyWords[currentRound] || []).map((keyword, index) => (
                 <Chip 
                   key={index}
                   label={keyword}
                   size="small"
-                  sx={{ bgcolor: 'grey.100', color: 'grey.700' }}
+                  sx={{ bgcolor: 'grey.100', color: 'grey.700', fontSize: '0.65rem', height: 18 }}
                 />
               ))}
             </Box>
@@ -560,27 +559,28 @@ const CausalRankingPage = () => {
 
           {/* Ranking Area */}
           <Box sx={{ 
-            border: '2px dashed', 
+            border: '1px dashed', 
             borderColor: 'grey.300', 
-            borderRadius: 2, 
-            p: 3,
+            borderRadius: 1.5, 
+            p: 1.5,
             bgcolor: 'grey.25'
           }}>
             {/* Strongest Label */}
-            <Box sx={{ mb: 2 }}>
+            <Box sx={{ mb: 1 }}>
               <Chip 
                 label="Strongest Causal Implication"
                 sx={{ 
                   bgcolor: 'error.main', 
                   color: 'white',
                   fontWeight: 500,
-                  fontSize: '0.875rem'
+                  fontSize: '0.65rem',
+                  height: 20
                 }}
               />
             </Box>
 
             {/* Draggable Cards */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
               {currentCards.map((card, index) => (
                 <Paper
                   key={card.id}
@@ -589,28 +589,28 @@ const CausalRankingPage = () => {
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, index)}
-                  elevation={draggedItem === index ? 1 : 2}
+                  elevation={draggedItem === index ? 1 : 1}
                   sx={{
-                    p: 2,
+                    p: 1,
                     cursor: 'move',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5,
+                    gap: 0.75,
                     transition: 'all 0.2s ease',
                     opacity: draggedItem === index ? 0.5 : 1,
                     bgcolor: dragOverIndex === index ? 'primary.50' : 'white',
                     borderColor: dragOverIndex === index ? 'primary.main' : 'grey.200',
                     border: dragOverIndex === index ? '1px solid' : '1px solid transparent',
                     '&:hover': {
-                      boxShadow: 3
+                      boxShadow: 1
                     }
                   }}
                 >
-                  <DragIndicator sx={{ color: 'grey.400', fontSize: 20 }} />
+                  <DragIndicator sx={{ color: 'grey.400', fontSize: 16 }} />
                   
                   <Box sx={{
-                    width: 32,
-                    height: 32,
+                    width: 20,
+                    height: 20,
                     bgcolor: 'grey.600',
                     color: 'white',
                     borderRadius: '50%',
@@ -618,7 +618,7 @@ const CausalRankingPage = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 500,
-                    fontSize: '0.875rem',
+                    fontSize: '0.7rem',
                     flexShrink: 0
                   }}>
                     {index + 1}
@@ -626,18 +626,19 @@ const CausalRankingPage = () => {
                   
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography 
-                      variant="body1" 
+                      variant="body2" 
                       sx={{ 
                         color: 'grey.900', 
                         fontStyle: 'italic', 
-                        mb: 0.5,
-                        lineHeight: 1.4
+                        mb: 0.1,
+                        lineHeight: 1.2,
+                        fontSize: '0.8rem'
                       }}
                     >
-                      &quot;{highlightKeyWord(card.text, card.keyWord)}&quot;
+                      "{highlightKeyWord(card.text, card.keyWord)}"
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'primary.main' }}>
-                      Key word: &quot;{card.keyWord}&quot;
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontSize: '0.7rem' }}>
+                      Key word: "{card.keyWord}"
                     </Typography>
                   </Box>
                 </Paper>
@@ -645,14 +646,15 @@ const CausalRankingPage = () => {
             </Box>
 
             {/* Weakest Label */}
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mt: 1 }}>
               <Chip 
                 label="Weakest Causal Implication"
                 sx={{ 
                   bgcolor: 'primary.main', 
                   color: 'white',
                   fontWeight: 500,
-                  fontSize: '0.875rem'
+                  fontSize: '0.65rem',
+                  height: 20
                 }}
               />
             </Box>
@@ -661,12 +663,17 @@ const CausalRankingPage = () => {
 
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 0.75 }}>
             <Button
               onClick={handleRestart}
-              startIcon={<RestartAlt />}
+              startIcon={<RestartAlt sx={{ fontSize: 14 }} />}
+              size="small"
               sx={{ 
                 color: 'grey.600',
+                fontSize: '0.7rem',
+                px: 1,
+                py: 0.5,
+                minHeight: 28,
                 '&:hover': {
                   color: 'grey.800',
                   bgcolor: 'transparent'
@@ -679,9 +686,14 @@ const CausalRankingPage = () => {
             {currentRound > 0 && (
               <Button
                 onClick={handlePreviousRound}
-                startIcon={<ChevronLeft />}
+                startIcon={<ChevronLeft sx={{ fontSize: 14 }} />}
+                size="small"
                 sx={{ 
                   color: 'grey.600',
+                  fontSize: '0.7rem',
+                  px: 1,
+                  py: 0.5,
+                  minHeight: 28,
                   '&:hover': {
                     color: 'grey.800',
                     bgcolor: 'transparent'
@@ -698,12 +710,15 @@ const CausalRankingPage = () => {
               <Button
                 onClick={handleNextRound}
                 variant="contained"
-                endIcon={<ChevronRight />}
+                endIcon={<ChevronRight sx={{ fontSize: 14 }} />}
+                size="small"
                 sx={{
                   bgcolor: 'primary.main',
                   fontWeight: 500,
-                  px: 3,
-                  py: 1,
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: '0.7rem',
+                  minHeight: 28,
                   '&:hover': {
                     bgcolor: 'primary.dark'
                   }
@@ -714,12 +729,15 @@ const CausalRankingPage = () => {
             ) : (
               <Button
                 variant="contained"
-                endIcon={<ChevronRight />}
+                endIcon={<ChevronRight sx={{ fontSize: 14 }} />}
+                size="small"
                 sx={{
                   bgcolor: 'success.main',
                   fontWeight: 500,
-                  px: 3,
-                  py: 1,
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: '0.7rem',
+                  minHeight: 28,
                   '&:hover': {
                     bgcolor: 'success.dark'
                   }
