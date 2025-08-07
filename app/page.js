@@ -441,18 +441,17 @@ const CausalRankingPage = () => {
       <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 3 }}>
         <Container maxWidth="lg">
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 1 }}>
-              Causal Word Rankings
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <Typography sx={{ color: 'grey.500' }}>👥</Typography>
-              <Typography variant="body2" sx={{ color: 'grey.500' }}>
-                Based on {roundsData.length} rounds completed
+            {/* Understanding the Rankings - moved to top */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h5" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                Understanding the Rankings
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'grey.600', mb: 2 }}>
+                These rankings show how participants collectively perceived the causal strength of different words across various scientific 
+                contexts. Words at the top were consistently ranked as implying stronger causal relationships, while those at the bottom were 
+                seen as more correlational or descriptive.
               </Typography>
             </Box>
-            <Typography variant="body1" sx={{ color: 'grey.600', mb: 2 }}>
-              Words ranked by perceived strength of causal implication across all contexts.
-            </Typography>
           </Box>
 
           {/* Debug toggle for results */}
@@ -562,15 +561,6 @@ const CausalRankingPage = () => {
           </Paper>
 
           <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
-              Understanding the Rankings
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'grey.600', mb: 3 }}>
-              These rankings show how participants collectively perceived the causal strength of different words across various scientific 
-              contexts. Words at the top were consistently ranked as implying stronger causal relationships, while those at the bottom were 
-              seen as more correlational or descriptive.
-            </Typography>
-            
             <Button
               onClick={handleStartNewSession}
               variant="contained"
@@ -720,70 +710,75 @@ const CausalRankingPage = () => {
               />
             </Box>
 
-            {/* Draggable Cards */}
+            {/* Draggable Cards with Fixed Position Markers */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {currentCards.map((card, index) => (
-                <Paper
-                  key={card.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, index)}
-                  elevation={draggedItem === index ? 1 : 2}
-                  sx={{
-                    p: 1.5,
-                    cursor: 'move',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    transition: 'all 0.2s ease',
-                    opacity: draggedItem === index ? 0.5 : 1,
-                    bgcolor: dragOverIndex === index ? 'primary.50' : 'white',
-                    borderColor: dragOverIndex === index ? 'primary.main' : 'grey.200',
-                    border: dragOverIndex === index ? 1 : 0,
-                    '&:hover': {
-                      boxShadow: 3
-                    }
-                  }}
-                >
-                  <Typography sx={{ color: 'grey.400', fontSize: '1.25rem', userSelect: 'none' }}>
-                    ⋮⋮
-                  </Typography>
-                  
+                <Box key={card.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {/* Fixed Position Marker */}
                   <Box sx={{
-                    width: 24,
-                    height: 24,
-                    bgcolor: 'grey.600',
+                    width: 32,
+                    height: 32,
+                    bgcolor: 'primary.main',
                     color: 'white',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: 500,
-                    fontSize: '0.75rem',
-                    flexShrink: 0
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    flexShrink: 0,
+                    boxShadow: 1
                   }}>
                     {index + 1}
                   </Box>
                   
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: 'grey.900', 
-                        fontStyle: 'italic', 
-                        mb: 0.5,
-                        lineHeight: 1.4
-                      }}
-                    >
-                      &quot;{highlightKeyWord(card.text, card.keyWord)}&quot;
+                  {/* Draggable Card */}
+                  <Paper
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    elevation={draggedItem === index ? 1 : 2}
+                    sx={{
+                      p: 1.5,
+                      cursor: 'move',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      transition: 'all 0.2s ease',
+                      opacity: draggedItem === index ? 0.5 : 1,
+                      bgcolor: dragOverIndex === index ? 'primary.50' : 'white',
+                      borderColor: dragOverIndex === index ? 'primary.main' : 'grey.200',
+                      border: dragOverIndex === index ? 1 : 0,
+                      flexGrow: 1,
+                      '&:hover': {
+                        boxShadow: 3
+                      }
+                    }}
+                  >
+                    <Typography sx={{ color: 'grey.400', fontSize: '1.25rem', userSelect: 'none' }}>
+                      ⋮⋮
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'primary.main' }}>
-                      Key word: &quot;{card.keyWord}&quot;
-                    </Typography>
-                  </Box>
-                </Paper>
+                    
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: 'grey.900', 
+                          fontStyle: 'italic', 
+                          mb: 0.5,
+                          lineHeight: 1.4
+                        }}
+                      >
+                        &quot;{highlightKeyWord(card.text, card.keyWord)}&quot;
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'primary.main' }}>
+                        Key word: &quot;{card.keyWord}&quot;
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Box>
               ))}
             </Box>
 
