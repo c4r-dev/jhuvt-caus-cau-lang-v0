@@ -21,28 +21,23 @@ import {
 } from '@mui/material';
 
 const CausalRankingPage = () => {
-  // All available causal keywords
+  // Updated keywords list from screenshot (15 total)
   const [allKeyWords] = useState([
-    "is associated with",
-    "impairs", 
-    "influences",
     "affects",
-    "causes",
-    "leads to",
-    "results in",
-    "triggers",
-    "induces",
-    "prevents",
-    "enhances",
-    "reduces",
-    "increases",
-    "decreases",
-    "correlates with",
-    "predicts",
-    "determines",
+    "is associated with",
     "contributes to",
-    "facilitates",
-    "inhibits"
+    "correlates with",
+    "decreases",
+    "enhances",
+    "impacts",
+    "impairs",
+    "induces",
+    "influences",
+    "is linked to",
+    "mediates",
+    "predicts",
+    "is related to",
+    "triggers"
   ]);
 
   // Define all rounds data
@@ -78,9 +73,9 @@ const CausalRankingPage = () => {
   const [debugMode, setDebugMode] = useState(false);
   const [roundHistory, setRoundHistory] = useState([]);
   
-  // Matrix for storing pairwise comparisons
+  // Matrix for storing pairwise comparisons - updated to 15x15
   const [comparisonMatrix, setComparisonMatrix] = useState(() => {
-    const n = 20; // number of words
+    const n = 15; // updated number of words
     return Array(n).fill().map(() => Array(n).fill(0));
   });
 
@@ -216,14 +211,14 @@ const CausalRankingPage = () => {
   const testRankingScenario = () => {
     console.log('=== TESTING RANKING SCENARIO ===');
     
-    // Reset matrix for testing
-    const testMatrix = Array(20).fill().map(() => Array(20).fill(0));
+    // Reset matrix for testing - updated to 15x15
+    const testMatrix = Array(15).fill().map(() => Array(15).fill(0));
     
     // Simulate known rankings
     const testRounds = [
-      ['causes', 'influences', 'affects', 'correlates with'],
-      ['influences', 'causes', 'leads to', 'affects'],
-      ['causes', 'leads to', 'influences', 'triggers']
+      ['triggers', 'influences', 'affects', 'correlates with'],
+      ['influences', 'triggers', 'impacts', 'affects'],
+      ['triggers', 'impacts', 'influences', 'induces']
     ];
     
     console.log('Test rounds:', testRounds);
@@ -340,10 +335,10 @@ const CausalRankingPage = () => {
   };
 
   const handleStartNewSession = () => {
-    // Reset everything
+    // Reset everything - updated matrix dimensions
     setCurrentRound(0);
     setShowResults(false);
-    setComparisonMatrix(Array(20).fill().map(() => Array(20).fill(0)));
+    setComparisonMatrix(Array(15).fill().map(() => Array(15).fill(0)));
     setRoundHistory([]);
     const { allRoundsCards, allRoundsKeyWords } = initializeRounds();
     setAllCards(allRoundsCards);
