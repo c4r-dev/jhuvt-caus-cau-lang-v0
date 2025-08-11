@@ -815,7 +815,7 @@ const CausalRankingPage = () => {
           </Box>
 
           {/* Debug toggle for results */}
-          <Box sx={{ mb: 2 }}>
+          {/* <Box sx={{ mb: 2 }}>
             <Button 
               variant="outlined" 
               size="small" 
@@ -824,7 +824,7 @@ const CausalRankingPage = () => {
             >
               {debugMode ? 'Hide' : 'Show'} Debug Info
             </Button>
-          </Box>
+          </Box> */}
 
           {/* Debug Panel in Results */}
           {debugMode && (
@@ -1009,7 +1009,7 @@ const CausalRankingPage = () => {
             template is used with different causal words - rank from strongest to weakest causal implication.
           </Typography>
 
-          {/* Existing Matrix Status */}
+          {/* Existing Matrix Status
           {existingMatrix && (
             <Alert 
               severity="info" 
@@ -1020,21 +1020,21 @@ const CausalRankingPage = () => {
                 Matrix has {existingMatrix.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)} existing comparisons.
               </Typography>
             </Alert>
-          )}
+          )} */}
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="body2" sx={{ color: 'grey.500' }}>
               Round {currentRound + 1} of {roundsData.length}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button 
+              {/* <Button 
                 variant="outlined" 
                 size="small" 
                 onClick={() => setDebugMode(!debugMode)}
                 sx={{ textTransform: 'none' }}
               >
                 {debugMode ? 'Hide' : 'Show'} Debug
-              </Button>
+              </Button> */}
               {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography sx={{ color: 'grey.500' }}>👥</Typography>
                 <Typography variant="body2" sx={{ color: 'grey.500' }}>
