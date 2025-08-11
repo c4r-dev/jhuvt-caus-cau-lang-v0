@@ -18,6 +18,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Alert,
+  Snackbar,
+  CircularProgress,
 } from '@mui/material';
 
 const CausalRankingPage = () => {
@@ -73,11 +76,81 @@ const CausalRankingPage = () => {
   const [debugMode, setDebugMode] = useState(false);
   const [roundHistory, setRoundHistory] = useState([]);
   
+  // API state management
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [savedMatrixId, setSavedMatrixId] = useState(null);
+  const [existingMatrix, setExistingMatrix] = useState(null);
+  const [isLoadingExistingMatrix, setIsLoadingExistingMatrix] = useState(true);
+  
+  // The specific matrix ID to fetch on load
+  const EXISTING_MATRIX_ID = 'causal-ranking-2025-08-11T17-41-13-332Z-ns5ee0';
+  
   // Matrix for storing pairwise comparisons - updated to 15x15
   const [comparisonMatrix, setComparisonMatrix] = useState(() => {
     const n = 15; // updated number of words
     return Array(n).fill().map(() => Array(n).fill(0));
   });
+
+  // Function to generate a unique matrix ID
+  const generateMatrixId = () => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    return `causal-ranking-${timestamp}-${randomSuffix}`;
+  };
+
+  // Function to fetch existing matrix from API
+  const fetchExistingMatrix = async (matrixId) => {
+    console.log('🔍 === FETCHING EXISTING MATRIX ===');
+    console.log('📋 Matrix ID to fetch:', matrixId);
+    
+    try {
+      const url = `http://localhost:3002/api/matrix?matrixId=${matrixId}`;
+      console.log('🌐 Making GET request to:', url);
+      
+      const response = await fetch(url);
+      
+      console.log('📨 GET Response received:');
+      console.log('  - Status:', response.status);
+      console.log('  - Status Text:', response.statusText);
+      console.log('  - OK:', response.ok);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log('📭 Matrix not found - will create new one');
+          return null; // Matrix doesn't exist yet
+        }
+        console.log('❌ GET Response not OK, attempting to parse error...');
+        const errorData = await response.json();
+        console.log('🚫 GET Error Response Data:', errorData);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      console.log('✅ GET Response OK, parsing data...');
+      const result = await response.json();
+      console.log('📊 Existing Matrix Data:');
+      console.log('  - Matrix ID:', result.matrixId);
+      console.log('  - Matrix dimensions:', result.matrix?.length + 'x' + (result.matrix?.[0]?.length || 0));
+      console.log('  - Version:', result.version);
+      console.log('  - Created by:', result.createdBy);
+      console.log('  - Last modified:', result.lastModified);
+      console.log('📋 Full Matrix Response:', result);
+      
+      return result.matrix || null;
+    } catch (error) {
+      console.log('💥 === FETCH EXISTING MATRIX FAILED ===');
+      console.error('🚨 Fetch Error Type:', error.constructor.name);
+      console.error('🚨 Fetch Error Message:', error.message);
+      console.error('🚨 Full Fetch Error:', error);
+      
+      if (error instanceof TypeError) {
+        console.log('🔍 TypeError suggests network issue - check if server is running on localhost:3002');
+      }
+      
+      throw error;
+    }
+  };
 
   // Function to get 4 random unique keywords
   const getRandomKeyWords = () => {
@@ -107,9 +180,48 @@ const CausalRankingPage = () => {
 
   // Initialize on component mount
   useEffect(() => {
-    const { allRoundsCards, allRoundsKeyWords } = initializeRounds();
-    setAllCards(allRoundsCards);
-    setRoundKeyWords(allRoundsKeyWords);
+    const initializeComponent = async () => {
+      console.log('🚀 === COMPONENT INITIALIZATION ===');
+      
+      try {
+        // Initialize rounds data first
+        console.log('🔧 Initializing rounds data...');
+        const { allRoundsCards, allRoundsKeyWords } = initializeRounds();
+        setAllCards(allRoundsCards);
+        setRoundKeyWords(allRoundsKeyWords);
+        console.log('✅ Rounds data initialized');
+        
+        // Try to fetch existing matrix
+        console.log('🔍 Attempting to fetch existing matrix...');
+        setIsLoadingExistingMatrix(true);
+        
+        const existingMatrixData = await fetchExistingMatrix(EXISTING_MATRIX_ID);
+        
+        if (existingMatrixData) {
+          console.log('📊 Existing matrix found and loaded');
+          console.log('📈 Existing matrix row sums:', existingMatrixData.map((row, i) => ({ 
+            word: allKeyWords[i], 
+            sum: row.reduce((a, b) => a + b, 0) 
+          })));
+          setExistingMatrix(existingMatrixData);
+        } else {
+          console.log('📭 No existing matrix found - starting fresh');
+          // Initialize with empty 15x15 matrix
+          setExistingMatrix(Array(15).fill().map(() => Array(15).fill(0)));
+        }
+        
+      } catch (error) {
+        console.error('💥 Error during initialization:', error);
+        console.log('🔄 Falling back to empty matrix...');
+        // Fallback to empty matrix if fetch fails
+        setExistingMatrix(Array(15).fill().map(() => Array(15).fill(0)));
+      } finally {
+        setIsLoadingExistingMatrix(false);
+        console.log('✅ Component initialization complete');
+      }
+    };
+
+    initializeComponent();
   }, []);
 
   // Enhanced function to update comparison matrix with debugging
@@ -179,6 +291,95 @@ const CausalRankingPage = () => {
     
     // Sort by score (descending) - higher score means more causal
     return rowSums.sort((a, b) => b.score - a.score);
+  };
+
+  // API call function
+  const submitMatrixData = async (matrix) => {
+    console.log('🚀 === STARTING API SUBMISSION ===');
+    
+    // Use the same matrix ID to update the existing matrix
+    const matrixId = EXISTING_MATRIX_ID;
+    console.log('📋 Using Matrix ID:', matrixId, '(updating existing matrix)');
+    
+    const requestBody = {
+      matrixId,
+      matrix,
+      metadata: {
+        title: `Causal Ranking Session - ${new Date().toLocaleDateString()}`,
+        description: `Cumulative causal word ranking results across multiple sessions`,
+        // Removed dataType to use schema default
+        tags: ['causal_ranking', 'linguistics', 'user_study', 'cumulative'],
+        rounds: roundHistory.length + 1, // +1 for the final round being submitted
+        keywords: allKeyWords,
+        roundTopics: roundsData.map(round => round.topic),
+        sessionInfo: {
+          currentSession: new Date().toISOString(),
+          totalRoundsThisSession: roundHistory.length + 1
+        }
+      },
+      lastModifiedBy: 'user',
+      changes: `Added causal ranking data from ${roundHistory.length + 1} rounds to cumulative matrix`
+    };
+
+    console.log('📦 Request Body Structure:');
+    console.log('  - matrixId:', requestBody.matrixId);
+    console.log('  - matrix dimensions:', matrix.length + 'x' + (matrix[0]?.length || 0));
+    console.log('  - metadata:', requestBody.metadata);
+    console.log('  - lastModifiedBy:', requestBody.lastModifiedBy);
+    console.log('  - changes:', requestBody.changes);
+    console.log('📊 Full Request Body:', requestBody);
+
+    try {
+      console.log('🌐 Making POST request to /api/matrix...');
+      console.log('📡 Request Details:');
+      console.log('  - URL: /api/matrix');
+      console.log('  - Method: POST');
+      console.log('  - Content-Type: application/json');
+      console.log('  - Body size:', JSON.stringify(requestBody).length, 'characters');
+      
+      const response = await fetch('/api/matrix', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📨 Response received:');
+      console.log('  - Status:', response.status);
+      console.log('  - Status Text:', response.statusText);
+      console.log('  - OK:', response.ok);
+      console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        console.log('❌ Response not OK, attempting to parse error...');
+        const errorData = await response.json();
+        console.log('🚫 Error Response Data:', errorData);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      console.log('✅ Response OK, parsing success data...');
+      const result = await response.json();
+      console.log('🎉 SUCCESS! Cumulative matrix updated successfully:');
+      console.log('  - Matrix ID:', result.matrixId);
+      console.log('  - Version:', result.version);
+      console.log('  - Dimensions:', result.dimensions);
+      console.log('  - Last Modified:', result.lastModified);
+      console.log('📋 Full Success Response:', result);
+      
+      return result;
+    } catch (error) {
+      console.log('💥 === API SUBMISSION FAILED ===');
+      console.error('🚨 Error Type:', error.constructor.name);
+      console.error('🚨 Error Message:', error.message);
+      console.error('🚨 Full Error:', error);
+      
+      if (error instanceof TypeError) {
+        console.log('🔍 TypeError suggests network/fetch issue - check if API endpoint exists');
+      }
+      
+      throw error;
+    }
   };
 
   // Debug function to show matrix
@@ -327,17 +528,125 @@ const CausalRankingPage = () => {
     }
   };
 
-  const handleSubmitAllRankings = () => {
-    // Update matrix with final round's ranking
-    updateComparisonMatrix(currentCards);
-    // Show results
-    setShowResults(true);
+  const handleSubmitAllRankings = async () => {
+    console.log('🎯 === SUBMIT ALL RANKINGS CLICKED ===');
+    console.log('📊 Current round:', currentRound + 1);
+    console.log('📋 Current round cards ranking:', currentCards.map(card => card.keyWord));
+    console.log('📈 Rounds completed so far:', roundHistory.length);
+    console.log('🔍 Current comparison matrix state:', comparisonMatrix);
+    
+    // Clear any previous errors
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    setIsSubmitting(true);
+    console.log('⏳ Setting isSubmitting to true...');
+
+    try {
+      console.log('🔄 Updating comparison matrix with final round...');
+      // Update matrix with final round's ranking
+      updateComparisonMatrix(currentCards);
+      
+      // Wait a moment for the matrix to update (since useState is async)
+      console.log('⏱️ Waiting 100ms for state update...');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Get the updated matrix - we need to manually create it since state might not be updated yet
+      console.log('🏗️ Creating final matrix manually...');
+      const newSessionMatrix = comparisonMatrix.map(row => [...row]);
+      
+      // Apply the final round's updates to the matrix
+      console.log('🔧 Applying final round updates to matrix...');
+      const wordIndices = currentCards.map(card => allKeyWords.indexOf(card.keyWord));
+      console.log('📍 Final round word indices:', wordIndices);
+      
+      let updatesApplied = 0;
+      for (let i = 0; i < wordIndices.length; i++) {
+        for (let j = i + 1; j < wordIndices.length; j++) {
+          const beforeValue = newSessionMatrix[wordIndices[i]][wordIndices[j]];
+          newSessionMatrix[wordIndices[i]][wordIndices[j]]++;
+          updatesApplied++;
+          console.log(`  📝 Updated matrix[${wordIndices[i]}][${wordIndices[j]}]: ${beforeValue} -> ${newSessionMatrix[wordIndices[i]][wordIndices[j]]} (${allKeyWords[wordIndices[i]]} > ${allKeyWords[wordIndices[j]]})`);
+        }
+      }
+      console.log('✅ Applied', updatesApplied, 'matrix updates for final round');
+      
+      // Create cumulative matrix by adding existing matrix + new session matrix
+      console.log('🔗 === CREATING CUMULATIVE MATRIX ===');
+      console.log('📊 New session matrix dimensions:', newSessionMatrix.length + 'x' + newSessionMatrix[0].length);
+      console.log('📊 Existing matrix dimensions:', existingMatrix?.length + 'x' + (existingMatrix?.[0]?.length || 0));
+      
+      const cumulativeMatrix = Array(15).fill().map(() => Array(15).fill(0));
+      
+      // Add existing matrix values
+      if (existingMatrix) {
+        console.log('➕ Adding existing matrix values...');
+        for (let i = 0; i < 15; i++) {
+          for (let j = 0; j < 15; j++) {
+            cumulativeMatrix[i][j] += (existingMatrix[i]?.[j] || 0);
+          }
+        }
+        console.log('✅ Existing matrix values added');
+      } else {
+        console.log('📭 No existing matrix to add');
+      }
+      
+      // Add new session matrix values
+      console.log('➕ Adding new session matrix values...');
+      for (let i = 0; i < 15; i++) {
+        for (let j = 0; j < 15; j++) {
+          cumulativeMatrix[i][j] += newSessionMatrix[i][j];
+        }
+      }
+      console.log('✅ New session matrix values added');
+      
+      console.log('📊 Cumulative matrix dimensions:', cumulativeMatrix.length + 'x' + cumulativeMatrix[0].length);
+      console.log('📈 Cumulative matrix row sums:', cumulativeMatrix.map((row, i) => ({ 
+        word: allKeyWords[i], 
+        sum: row.reduce((a, b) => a + b, 0) 
+      })));
+      console.log('🎯 Final cumulative matrix:', cumulativeMatrix);
+
+      console.log('🚀 Calling submitMatrixData with cumulative matrix...');
+      // Submit cumulative matrix to API
+      const result = await submitMatrixData(cumulativeMatrix);
+      
+      // Success handling
+      console.log('🎉 === CUMULATIVE SUBMISSION SUCCESSFUL ===');
+      console.log('💾 Saved Matrix ID:', result.matrixId);
+      console.log('📊 Matrix Version:', result.version);
+      console.log('📏 Matrix Dimensions:', result.dimensions);
+      console.log('🕒 Last Modified:', result.lastModified);
+      
+      setSavedMatrixId(result.matrixId);
+      setSubmitSuccess(true);
+      setShowResults(true);
+      
+      console.log('✅ State updated - showing results page');
+      
+    } catch (error) {
+      console.log('💥 === SUBMISSION FAILED ===');
+      console.error('🚨 Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      const errorMessage = error.message || 'Failed to submit rankings. Please try again.';
+      console.log('📝 Setting error message:', errorMessage);
+      setSubmitError(errorMessage);
+    } finally {
+      console.log('🏁 Setting isSubmitting to false...');
+      setIsSubmitting(false);
+    }
   };
 
   const handleStartNewSession = () => {
     // Reset everything - updated matrix dimensions
     setCurrentRound(0);
     setShowResults(false);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    setSavedMatrixId(null);
     setComparisonMatrix(Array(15).fill().map(() => Array(15).fill(0)));
     setRoundHistory([]);
     const { allRoundsCards, allRoundsKeyWords } = initializeRounds();
@@ -386,6 +695,44 @@ const CausalRankingPage = () => {
         >
           Show History
         </Button>
+        <Button 
+          variant="outlined" 
+          size="small" 
+          onClick={() => {
+            console.log('🔍 === EXISTING MATRIX DEBUG ===');
+            console.log('Matrix ID:', EXISTING_MATRIX_ID);
+            console.log('Existing matrix loaded:', !!existingMatrix);
+            if (existingMatrix) {
+              console.log('Existing matrix dimensions:', existingMatrix.length + 'x' + existingMatrix[0].length);
+              console.log('Existing matrix row sums:', existingMatrix.map((row, i) => ({ 
+                word: allKeyWords[i], 
+                sum: row.reduce((a, b) => a + b, 0) 
+              })));
+              console.log('Full existing matrix:', existingMatrix);
+            }
+          }}
+          sx={{ textTransform: 'none' }}
+        >
+          Show Existing Matrix
+        </Button>
+      </Box>
+
+      {/* Matrix Status Info */}
+      <Box sx={{ mb: 2, p: 1, bgcolor: 'white', borderRadius: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+          Matrix Status
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'grey.600', mb: 0.5 }}>
+          <strong>Target Matrix ID:</strong> {EXISTING_MATRIX_ID}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'grey.600', mb: 0.5 }}>
+          <strong>Existing Matrix Loaded:</strong> {existingMatrix ? '✅ Yes' : '❌ No'}
+        </Typography>
+        {existingMatrix && (
+          <Typography variant="body2" sx={{ color: 'grey.600' }}>
+            <strong>Existing Data Points:</strong> {existingMatrix.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)}
+          </Typography>
+        )}
       </Box>
 
       {roundHistory.length > 0 && (
@@ -436,6 +783,24 @@ const CausalRankingPage = () => {
       <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 3 }}>
         <Container maxWidth="lg">
           <Box sx={{ mb: 4 }}>
+            {/* Success message */}
+            {submitSuccess && savedMatrixId && (
+              <Alert 
+                severity="success" 
+                sx={{ mb: 3 }}
+                onClose={() => setSubmitSuccess(false)}
+              >
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Rankings submitted successfully!
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'grey.700' }}>
+                    Matrix ID: {savedMatrixId}
+                  </Typography>
+                </Box>
+              </Alert>
+            )}
+
             {/* Understanding the Rankings - moved to top */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="h5" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
@@ -450,7 +815,7 @@ const CausalRankingPage = () => {
           </Box>
 
           {/* Debug toggle for results */}
-          {/* <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 2 }}>
             <Button 
               variant="outlined" 
               size="small" 
@@ -459,7 +824,7 @@ const CausalRankingPage = () => {
             >
               {debugMode ? 'Hide' : 'Show'} Debug Info
             </Button>
-          </Box> */}
+          </Box>
 
           {/* Debug Panel in Results */}
           {debugMode && (
@@ -482,6 +847,17 @@ const CausalRankingPage = () => {
               <Typography variant="body2" sx={{ color: 'grey.600' }}>
                 Total comparisons made: {roundHistory.reduce((sum, round) => sum + round.comparisons.length, 0)}
               </Typography>
+              <Typography variant="body2" sx={{ color: 'grey.600', mt: 1 }}>
+                Matrix ID: {EXISTING_MATRIX_ID}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'grey.600' }}>
+                Cumulative data points: {existingMatrix ? existingMatrix.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0) : 'Unknown'}
+              </Typography>
+              {savedMatrixId && (
+                <Typography variant="body2" sx={{ color: 'grey.600', mt: 1 }}>
+                  Saved Matrix ID: {savedMatrixId}
+                </Typography>
+              )}
             </Paper>
           )}
 
@@ -578,6 +954,29 @@ const CausalRankingPage = () => {
     );
   };
 
+  // Show loading screen while fetching existing matrix
+  if (isLoadingExistingMatrix) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        bgcolor: 'grey.50', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <CircularProgress size={40} />
+        <Typography variant="h6" sx={{ color: 'grey.600' }}>
+          Loading existing matrix data...
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'grey.500' }}>
+          Matrix ID: {EXISTING_MATRIX_ID}
+        </Typography>
+      </Box>
+    );
+  }
+
   // Show results page if completed
   if (showResults) {
     return <ResultsPage />;
@@ -588,6 +987,18 @@ const CausalRankingPage = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', py: 2 }}>
       <Container maxWidth="md">
+        {/* Error and Success Notifications */}
+        <Snackbar 
+          open={!!submitError} 
+          autoHideDuration={6000} 
+          onClose={() => setSubmitError(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert severity="error" onClose={() => setSubmitError(null)}>
+            {submitError}
+          </Alert>
+        </Snackbar>
+
         {/* Header */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 0.5 }}>
@@ -597,12 +1008,25 @@ const CausalRankingPage = () => {
             Drag and drop the different word options to rank them by strength of causal implication. The same sentence 
             template is used with different causal words - rank from strongest to weakest causal implication.
           </Typography>
+
+          {/* Existing Matrix Status */}
+          {existingMatrix && (
+            <Alert 
+              severity="info" 
+              sx={{ mb: 2, fontSize: '0.875rem' }}
+            >
+              <Typography variant="body2">
+                📊 <strong>Cumulative Mode:</strong> Your rankings will be added to existing data. 
+                Matrix has {existingMatrix.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)} existing comparisons.
+              </Typography>
+            </Alert>
+          )}
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="body2" sx={{ color: 'grey.500' }}>
               Round {currentRound + 1} of {roundsData.length}
             </Typography>
-            {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Button 
                 variant="outlined" 
                 size="small" 
@@ -611,13 +1035,13 @@ const CausalRankingPage = () => {
               >
                 {debugMode ? 'Hide' : 'Show'} Debug
               </Button>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography sx={{ color: 'grey.500' }}>👥</Typography>
                 <Typography variant="body2" sx={{ color: 'grey.500' }}>
                   3 participants so far
                 </Typography>
-              </Box>
-            </Box> */}
+              </Box> */}
+            </Box>
           </Box>
 
           {/* Progress Bar */}
@@ -797,6 +1221,7 @@ const CausalRankingPage = () => {
           <Box sx={{ display: 'flex', gap: 1.5 }}>
             <Button
               onClick={handleRestart}
+              disabled={isSubmitting}
               startIcon={<span>↻</span>}
               sx={{ 
                 color: 'grey.600',
@@ -814,6 +1239,7 @@ const CausalRankingPage = () => {
             {currentRound > 0 && (
               <Button
                 onClick={handlePreviousRound}
+                disabled={isSubmitting}
                 startIcon={<span>←</span>}
                 sx={{ 
                   color: 'grey.600',
@@ -834,6 +1260,7 @@ const CausalRankingPage = () => {
             {currentRound < roundsData.length - 1 ? (
               <Button
                 onClick={handleNextRound}
+                disabled={isSubmitting}
                 variant="contained"
                 endIcon={<span>→</span>}
                 sx={{
@@ -852,8 +1279,9 @@ const CausalRankingPage = () => {
             ) : (
               <Button
                 onClick={handleSubmitAllRankings}
+                disabled={isSubmitting}
                 variant="contained"
-                endIcon={<span>→</span>}
+                endIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <span>→</span>}
                 sx={{
                   bgcolor: 'success.main',
                   fontWeight: 500,
@@ -862,10 +1290,13 @@ const CausalRankingPage = () => {
                   textTransform: 'none',
                   '&:hover': {
                     bgcolor: 'success.dark'
+                  },
+                  '&:disabled': {
+                    bgcolor: 'grey.400'
                   }
                 }}
               >
-                Submit All Rankings
+                {isSubmitting ? 'Submitting...' : 'Submit All Rankings'}
               </Button>
             )}
           </Box>
