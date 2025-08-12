@@ -101,12 +101,12 @@ const CausalRankingPage = () => {
   };
 
   // Function to fetch existing matrix from API
-  const fetchExistingMatrix = async (matrixId) => {
+  const fetchExistingMatrix = async (matrixId, baseUrl = 'https://jhuvt-caus-cau-lang-v0.vercel.app') => {
     console.log('🔍 === FETCHING EXISTING MATRIX ===');
     console.log('📋 Matrix ID to fetch:', matrixId);
     
     try {
-      const url = `http://localhost:3002/api/matrix?matrixId=${matrixId}`;
+      const url = `${baseUrl}/api/matrix?matrixId=${matrixId}`;
       console.log('🌐 Making GET request to:', url);
       
       const response = await fetch(url);
@@ -823,7 +823,7 @@ const CausalRankingPage = () => {
               sx={{ textTransform: 'none' }}
             >
               {debugMode ? 'Hide' : 'Show'} Debug Info
-            </Button>
+            </Button>o0
           </Box> */}
 
           {/* Debug Panel in Results */}
@@ -1072,7 +1072,7 @@ const CausalRankingPage = () => {
             </Typography>
             <Button
               onClick={handleShuffleKeywords}
-              startIcon={<span>🔀</span>}
+             // startIcon={<span>🔀</span>}
               sx={{ 
                 color: 'primary.main',
                 fontSize: '0.875rem',
