@@ -802,7 +802,7 @@ const CausalRankingPage = () => {
             )}
 
             {/* Understanding the Rankings - moved to top */}
-            <Box sx={{ mb: 3 }}>
+            {/* <Box sx={{ mb: 3 }}>
               <Typography variant="h5" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
                 Understanding the Rankings
               </Typography>
@@ -811,8 +811,8 @@ const CausalRankingPage = () => {
                 contexts. Words at the top were consistently ranked as implying stronger causal relationships, while those at the bottom were 
                 seen as more correlational or descriptive.
               </Typography>
-            </Box>
-          </Box>
+            </Box> */}
+          </Box> 
 
           {/* Debug toggle for results */}
           {/* <Box sx={{ mb: 2 }}>
@@ -870,7 +870,7 @@ const CausalRankingPage = () => {
             
             <TableContainer>
               <Table>
-                <TableHead>
+                {/* <TableHead>
                   <TableRow sx={{ bgcolor: 'grey.50' }}>
                     <TableCell sx={{ fontWeight: 600, color: 'grey.700', width: 80 }}>RANK</TableCell>
                     <TableCell sx={{ fontWeight: 600, color: 'grey.700' }}>WORD/PHRASE</TableCell>
@@ -878,7 +878,7 @@ const CausalRankingPage = () => {
                       <TableCell sx={{ fontWeight: 600, color: 'grey.700', width: 100 }}>SCORE</TableCell>
                     )}
                   </TableRow>
-                </TableHead>
+                </TableHead> */}
                 <TableBody>
                   {finalRankings.map((item, index) => (
                     <TableRow 
@@ -1001,13 +1001,13 @@ const CausalRankingPage = () => {
 
         {/* Header */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 0.5 }}>
+          {/* <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: 'grey.900', mb: 0.5 }}>
             Ranking Causal-ish Paper Titles
           </Typography>
           <Typography variant="body2" sx={{ color: 'grey.600', mb: 1.5, lineHeight: 1.4 }}>
             Drag and drop the different word options to rank them by strength of causal implication. The same sentence 
             template is used with different causal words - rank from strongest to weakest causal implication.
-          </Typography>
+          </Typography> */}
 
           {/* Existing Matrix Status
           {existingMatrix && (
@@ -1093,7 +1093,7 @@ const CausalRankingPage = () => {
 
           {/* Current Keywords Display */}
           <Box sx={{ mb: 1.5 }}>
-            <Typography variant="caption" sx={{ color: 'grey.500', mb: 1, display: 'block' }}>
+            {/* <Typography variant="caption" sx={{ color: 'grey.500', mb: 1, display: 'block' }}>
               Current keywords for this round:
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -1105,7 +1105,7 @@ const CausalRankingPage = () => {
                   sx={{ bgcolor: 'grey.100', color: 'grey.700', fontSize: '0.75rem' }}
                 />
               ))}
-            </Box>
+            </Box> */}
           </Box>
 
           {/* Ranking Area */}
@@ -1219,7 +1219,7 @@ const CausalRankingPage = () => {
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <Button
+            {/* <Button
               onClick={handleRestart}
               disabled={isSubmitting}
               startIcon={<span>↻</span>}
@@ -1234,7 +1234,7 @@ const CausalRankingPage = () => {
               }}
             >
               Restart
-            </Button>
+            </Button> */}
 
             {currentRound > 0 && (
               <Button
